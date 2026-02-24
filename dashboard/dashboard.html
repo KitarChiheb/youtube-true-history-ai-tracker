@@ -120,46 +120,52 @@
         <div class="settings-grid">
           <label>
             Minimum watch %
-            <input type="number" id="settingWatchPercent" min="10" max="80" step="5" />
+            <input type="number" id="settingWatchPercent" name="settingWatchPercent" min="10" max="80" step="5" />
+            <small class="label-hint">Videos below this completion won’t be saved. Range: 10-80%.</small>
           </label>
           <label>
             Minimum watch time (minutes)
-            <input type="number" id="settingWatchMinutes" min="1" max="60" />
+            <input type="number" id="settingWatchMinutes" name="settingWatchMinutes" min="1" max="60" />
+            <small class="label-hint">Backup threshold. Long sessions count once they hit this many minutes.</small>
           </label>
           <label>
             Track autoplay videos
-            <select id="settingTrackAutoplay">
+            <select id="settingTrackAutoplay" name="settingTrackAutoplay">
               <option value="true">Yes</option>
               <option value="false">No</option>
             </select>
+            <small class="label-hint">"Yes" counts videos that started without a click.</small>
           </label>
           <label>
             Count hidden tab time
-            <select id="settingHiddenTime">
+            <select id="settingHiddenTime" name="settingHiddenTime">
               <option value="true">Yes</option>
               <option value="false">No</option>
             </select>
+            <small class="label-hint">Include watch seconds even when the tab/window isn’t visible.</small>
           </label>
           <label>
             Data retention
-            <select id="settingRetention">
+            <select id="settingRetention" name="settingRetention">
               <option value="all">Keep everything</option>
               <option value="3m">3 months</option>
               <option value="6m">6 months</option>
               <option value="1y">1 year</option>
             </select>
+            <small class="label-hint">Automatically delete entries older than the selected window.</small>
           </label>
           <label>
             AI features
-            <select id="settingAiEnabled">
+            <select id="settingAiEnabled" name="settingAiEnabled">
               <option value="true">Enabled</option>
               <option value="false">Disabled</option>
             </select>
+            <small class="label-hint">Enable AI categorization + weekly reports using your API key.</small>
           </label>
           <label>
             OpenRouter API key
             <div class="password-field">
-              <input type="password" id="settingApiKey" placeholder="sk-..." />
+              <input type="password" id="settingApiKey" name="settingApiKey" placeholder="sk-..." />
               <button type="button" class="btn btn--ghost" id="toggleKey">Show</button>
             </div>
             <small>Stored only on your device. Never logged.</small>
@@ -167,7 +173,7 @@
           <div class="settings-actions">
             <button type="button" class="btn btn--outline" id="testApiKey">Test Connection</button>
             <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get a key ↗</a>
-            <p class="muted">Model: deepseek/deepseek-r1-0528:free with llama-3.3-70b fallback.</p>
+            <p class="muted">Model: mistralai/mistral-small-3.1-24b with gemma-3-12b fall back (BYOK).</p>
           </div>
         </div>
         <div class="settings-footer">

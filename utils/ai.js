@@ -6,8 +6,8 @@
  */
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const AI_MODEL_PRIMARY = 'deepseek/deepseek-r1-0528:free';
-const AI_MODEL_FALLBACK = 'meta-llama/llama-3.3-70b-instruct:free';
+const AI_MODEL_PRIMARY = 'mistralai/mistral-nemo';
+const AI_MODEL_FALLBACK = 'google/gemma-3-12b-it';
 
 const buildHeaders = (apiKey) => ({
   'Content-Type': 'application/json',

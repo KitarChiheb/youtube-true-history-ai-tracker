@@ -8,7 +8,8 @@
     "activeTab"
   ],
   "host_permissions": [
-    "*://*.youtube.com/*"
+    "*://*.youtube.com/*",
+    "https://openrouter.ai/*"
   ],
   "action": {
     "default_popup": "popup/popup.html",

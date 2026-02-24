@@ -38,6 +38,67 @@ const MESSAGE_TYPES = {
   CATEGORIZE_PENDING: 'CATEGORIZE_PENDING'
 };
 
+const FORM_DEFAULTS = {
+  minWatchPercent: 40,
+  minWatchTimeSeconds: 300,
+  trackAutoplay: true,
+  countHiddenTime: true,
+  dataRetention: 'all',
+  aiFeaturesEnabled: true,
+  openRouterApiKey: '',
+  trackingEnabled: true
+};
+
+const RETENTION_OPTIONS = new Set(['all', '3m', '6m', '1y']);
+
+const clampNumber = (value, min, max, fallback) => {
+  if (Number.isFinite(value) && value >= min && value <= max) {
+    return value;
+  }
+  return fallback;
+};
+
+const ensureSeconds = (value, fallback) => {
+  if (Number.isFinite(value) && value >= 60) {
+    return value;
+  }
+  return fallback;
+};
+
+const parseBoolean = (value, fallback) => {
+  if (typeof value === 'boolean') return value;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return fallback;
+};
+
+const sanitizeSettings = (input = {}, base = FORM_DEFAULTS) => {
+  const fallback = {
+    minWatchPercent: clampNumber(base.minWatchPercent, 10, 80, FORM_DEFAULTS.minWatchPercent),
+    minWatchTimeSeconds: ensureSeconds(base.minWatchTimeSeconds, FORM_DEFAULTS.minWatchTimeSeconds),
+    trackAutoplay: parseBoolean(base.trackAutoplay, FORM_DEFAULTS.trackAutoplay),
+    countHiddenTime: parseBoolean(base.countHiddenTime, FORM_DEFAULTS.countHiddenTime),
+    dataRetention: RETENTION_OPTIONS.has(base.dataRetention) ? base.dataRetention : FORM_DEFAULTS.dataRetention,
+    aiFeaturesEnabled: parseBoolean(base.aiFeaturesEnabled, FORM_DEFAULTS.aiFeaturesEnabled),
+    openRouterApiKey: typeof base.openRouterApiKey === 'string' ? base.openRouterApiKey : FORM_DEFAULTS.openRouterApiKey,
+    trackingEnabled: parseBoolean(base.trackingEnabled, FORM_DEFAULTS.trackingEnabled)
+  };
+
+  return {
+    ...base,
+    minWatchPercent: clampNumber(Number(input.minWatchPercent), 10, 80, fallback.minWatchPercent),
+    minWatchTimeSeconds: ensureSeconds(Number(input.minWatchTimeSeconds), fallback.minWatchTimeSeconds),
+    trackAutoplay: parseBoolean(input.trackAutoplay, fallback.trackAutoplay),
+    countHiddenTime: parseBoolean(input.countHiddenTime, fallback.countHiddenTime),
+    dataRetention: RETENTION_OPTIONS.has(input.dataRetention) ? input.dataRetention : fallback.dataRetention,
+    aiFeaturesEnabled: parseBoolean(input.aiFeaturesEnabled, fallback.aiFeaturesEnabled),
+    openRouterApiKey: typeof input.openRouterApiKey === 'string' ? input.openRouterApiKey.trim() : fallback.openRouterApiKey,
+    trackingEnabled: parseBoolean(input.trackingEnabled, fallback.trackingEnabled)
+  };
+};
+
+const areSettingsEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
 const state = {
   history: [],
   filtered: [],
@@ -67,9 +128,13 @@ const init = async () => {
 
 const loadInitialData = async () => {
   try {
-    const [history, settings] = await Promise.all([getHistory(), getSettings()]);
+    const [history, storedSettings] = await Promise.all([getHistory(), getSettings()]);
     state.history = history;
-    state.settings = settings;
+    const sanitizedSettings = sanitizeSettings(storedSettings, FORM_DEFAULTS);
+    if (!areSettingsEqual(sanitizedSettings, storedSettings)) {
+      await saveSettings(sanitizedSettings);
+    }
+    state.settings = sanitizedSettings;
     applyFilters();
     populateSettingsForm();
   } catch (error) {
@@ -237,19 +302,22 @@ const handleSettingsSubmit = async (event) => {
   event.preventDefault();
   const form = event.target;
   const formData = new FormData(form);
-  const updated = {
+  const minutes = Number(formData.get('settingWatchMinutes'));
+  const rawSettings = {
     minWatchPercent: Number(formData.get('settingWatchPercent')),
-    minWatchTimeSeconds: Number(formData.get('settingWatchMinutes')) * 60,
-    trackAutoplay: formData.get('settingTrackAutoplay') === 'true',
-    countHiddenTime: formData.get('settingHiddenTime') === 'true',
+    minWatchTimeSeconds: Number.isFinite(minutes) ? minutes * 60 : NaN,
+    trackAutoplay: formData.get('settingTrackAutoplay'),
+    countHiddenTime: formData.get('settingHiddenTime'),
     dataRetention: formData.get('settingRetention'),
-    aiFeaturesEnabled: formData.get('settingAiEnabled') === 'true',
+    aiFeaturesEnabled: formData.get('settingAiEnabled'),
     openRouterApiKey: formData.get('settingApiKey'),
     trackingEnabled: state.settings.trackingEnabled
   };
   try {
-    await saveSettings(updated);
-    state.settings = await getSettings();
+    const sanitized = sanitizeSettings(rawSettings, state.settings);
+    await saveSettings(sanitized);
+    state.settings = sanitized;
+    populateSettingsForm();
     showToast('Settings saved.');
   } catch (error) {
     console.error('saveSettings failed', error);
@@ -274,14 +342,15 @@ const testApiKeyConnection = async () => {
       showToast('Enter a key first.', true);
       return;
     }
-    const response = await chrome.runtime.sendMessage({
+    const response = await sendMessage({
       type: 'TEST_API_KEY',
       apiKey: key
     });
     if (response?.success && response.data) {
       showToast('Key works!');
     } else {
-      showToast('Key test failed. Check console.', true);
+      const errorMessage = response?.error ? `Key test failed: ${response.error}` : 'Key test failed. Check console.';
+      showToast(errorMessage, true);
     }
   } catch (error) {
     console.error('testApiKeyConnection failed', error);
@@ -566,14 +635,23 @@ const showToast = (message, error = false) => {
 };
 
 const populateSettingsForm = () => {
+  state.settings = sanitizeSettings(state.settings, FORM_DEFAULTS);
   const settings = state.settings;
-  document.getElementById('settingWatchPercent').value = settings.minWatchPercent;
-  document.getElementById('settingWatchMinutes').value = Math.round(settings.minWatchTimeSeconds / 60);
-  document.getElementById('settingTrackAutoplay').value = String(settings.trackAutoplay);
-  document.getElementById('settingHiddenTime').value = String(settings.countHiddenTime);
-  document.getElementById('settingRetention').value = settings.dataRetention;
-  document.getElementById('settingAiEnabled').value = String(settings.aiFeaturesEnabled);
-  document.getElementById('settingApiKey').value = settings.openRouterApiKey;
+  const percentInput = document.getElementById('settingWatchPercent');
+  const minutesInput = document.getElementById('settingWatchMinutes');
+  const trackSelect = document.getElementById('settingTrackAutoplay');
+  const hiddenSelect = document.getElementById('settingHiddenTime');
+  const retentionSelect = document.getElementById('settingRetention');
+  const aiSelect = document.getElementById('settingAiEnabled');
+  const apiInput = document.getElementById('settingApiKey');
+
+  if (percentInput) percentInput.value = settings.minWatchPercent;
+  if (minutesInput) minutesInput.value = Math.round((settings.minWatchTimeSeconds || FORM_DEFAULTS.minWatchTimeSeconds) / 60);
+  if (trackSelect) trackSelect.value = String(settings.trackAutoplay);
+  if (hiddenSelect) hiddenSelect.value = String(settings.countHiddenTime);
+  if (retentionSelect) retentionSelect.value = settings.dataRetention;
+  if (aiSelect) aiSelect.value = String(settings.aiFeaturesEnabled);
+  if (apiInput) apiInput.value = settings.openRouterApiKey || '';
 };
 
 const sendMessage = (payload) => new Promise((resolve, reject) => {
