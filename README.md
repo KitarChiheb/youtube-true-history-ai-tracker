@@ -59,7 +59,7 @@ yt-true-history/
 ## AI categorization flow
 1. Service worker saves the video immediately (optimistic UI), then enqueues AI categorization if the user enabled AI features and provided an OpenRouter key.
 2. Queue processes sequentially with a 1-second delay between requests to respect free-tier limits.
-3. Primary model: `deepseek/deepseek-r1:free`; fallback: `meta-llama/llama-3.1-8b-instruct:free`.
+3. Primary model: `deepseek/deepseek-r1-0528:free`; fallback: `meta-llama/llama-3.3-70b-instruct:free`.
 4. AI receives a strict prompt that returns JSON `{ category, confidence }`. Parsing is wrapped in try/catch.
 5. Results are written back to storage; UI updates automatically when reading from storage.
 6. Weekly report uses the same API but with a narrative prompt summarizing the last 7 days of history.
@@ -88,5 +88,3 @@ yt-true-history/
 - Chrome storage quota (4MB) may fill up after thousands of entries; export/delete if you hit warnings.
 - The extension currently focuses on desktop YouTube; mobile/responsive layouts may need polish.
 
-## What You Just Learned (teaser)
-See the post-build reflection in the final project summary for deep dives on extension architecture, message passing, chrome.storage, MV3 motivations, secure API calls, optimistic UI, prompt design, rate limiting, graceful degradation, and CSS custom properties.
