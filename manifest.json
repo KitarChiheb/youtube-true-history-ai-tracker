@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "YT True History",
+  "version": "1.0.0",
+  "description": "Chrome extension that tracks intentional YouTube viewing, stores it privately, and adds AI-powered insights.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "YT True History"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/watch*"],
+      "js": ["content/tracker.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "dashboard/dashboard.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dashboard/dashboard.html",
+        "dashboard/dashboard.js",
+        "dashboard/dashboard.css"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

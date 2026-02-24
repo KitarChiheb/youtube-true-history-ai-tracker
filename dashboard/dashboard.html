@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<!--
+  dashboard.html
+  Full-page dashboard UI for history browsing, filtering, stats, AI reports, and settings.
+  Communicates with dashboard.js for logic and storage/AI operations via chrome APIs.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YT True History — Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css" />
+  <script type="module" src="dashboard.js" defer></script>
+</head>
+<body>
+  <div class="dashboard" id="dashboardRoot">
+    <header class="hero">
+      <div class="hero__title">
+        <div class="hero__badge">Intentional-only</div>
+        <h1>YT True History</h1>
+        <p class="hero__subtitle">See only the videos you chose to watch — and understand the patterns behind them.</p>
+      </div>
+      <div class="hero__actions">
+        <button class="btn btn--secondary" id="categorizePending">Categorize Now</button>
+        <button class="btn btn--primary" id="generateReport">Generate AI Report</button>
+      </div>
+    </header>
+
+    <section class="filters" aria-label="Search and filters">
+      <div class="filter__field">
+        <label for="searchInput">Search title or channel</label>
+        <input type="search" id="searchInput" placeholder="e.g. rust ownership" />
+      </div>
+      <div class="filter__field">
+        <label for="channelFilter">Channel</label>
+        <select id="channelFilter"></select>
+      </div>
+      <div class="filter__field">
+        <label for="categoryFilter">Category</label>
+        <select id="categoryFilter"></select>
+      </div>
+      <div class="filter__field">
+        <label>Date start</label>
+        <input type="date" id="dateStart" />
+      </div>
+      <div class="filter__field">
+        <label>Date end</label>
+        <input type="date" id="dateEnd" />
+      </div>
+      <div class="filter__field">
+        <label for="percentSlider">Min watch %</label>
+        <div class="slider-row">
+          <input type="range" id="percentSlider" min="0" max="100" value="0" />
+          <span id="percentValue">0%</span>
+        </div>
+      </div>
+      <div class="filter__toggles">
+        <label class="toggle">
+          <input type="checkbox" id="toggleAutoplay" checked />
+          <span>Show autoplay videos</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="toggleUncategorized" checked />
+          <span>Show uncategorized</span>
+        </label>
+        <div class="filter__field">
+          <label for="sortSelect">Sort</label>
+          <select id="sortSelect">
+            <option value="recent">Most recent</option>
+            <option value="rewatch">Most rewatched</option>
+            <option value="duration">Longest watched</option>
+            <option value="category">Category A-Z</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <aside class="category-panel" id="categorySidebar" aria-label="AI categories"></aside>
+
+      <section class="history-panel">
+        <div class="history-panel__header">
+          <div>
+            <p class="eyebrow">Video history</p>
+            <h2 id="historyCount">0 videos</h2>
+          </div>
+          <div class="history-panel__actions">
+            <button class="btn btn--ghost" id="exportJson">Export JSON</button>
+            <button class="btn btn--ghost" id="exportCsv">Export CSV</button>
+            <label class="btn btn--outline" for="importInput">Import JSON</label>
+            <input type="file" id="importInput" accept="application/json" hidden />
+          </div>
+        </div>
+        <div class="video-grid" id="videoGrid" aria-live="polite"></div>
+      </section>
+
+      <aside class="stats-panel" id="statsPanel">
+        <div class="stats-card" id="totalsCard"></div>
+        <div class="stats-card">
+          <h3>Top channels</h3>
+          <ul id="topChannels" class="simple-list"></ul>
+        </div>
+        <div class="stats-card">
+          <h3>Category breakdown</h3>
+          <div class="category-bars" id="categoryBars"></div>
+        </div>
+        <div class="stats-card">
+          <h3>Daily activity (30 days)</h3>
+          <div class="activity-chart" id="activityChart"></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="settings-panel" id="settingsPanel">
+      <header>
+        <p class="eyebrow">Settings</p>
+        <h2>Tracking & AI preferences</h2>
+      </header>
+      <form id="settingsForm">
+        <div class="settings-grid">
+          <label>
+            Minimum watch %
+            <input type="number" id="settingWatchPercent" min="10" max="80" step="5" />
+          </label>
+          <label>
+            Minimum watch time (minutes)
+            <input type="number" id="settingWatchMinutes" min="1" max="60" />
+          </label>
+          <label>
+            Track autoplay videos
+            <select id="settingTrackAutoplay">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </label>
+          <label>
+            Count hidden tab time
+            <select id="settingHiddenTime">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </label>
+          <label>
+            Data retention
+            <select id="settingRetention">
+              <option value="all">Keep everything</option>
+              <option value="3m">3 months</option>
+              <option value="6m">6 months</option>
+              <option value="1y">1 year</option>
+            </select>
+          </label>
+          <label>
+            AI features
+            <select id="settingAiEnabled">
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </label>
+          <label>
+            OpenRouter API key
+            <div class="password-field">
+              <input type="password" id="settingApiKey" placeholder="sk-..." />
+              <button type="button" class="btn btn--ghost" id="toggleKey">Show</button>
+            </div>
+            <small>Stored only on your device. Never logged.</small>
+          </label>
+          <div class="settings-actions">
+            <button type="button" class="btn btn--outline" id="testApiKey">Test Connection</button>
+            <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">Get a key ↗</a>
+            <p class="muted">Model: deepseek/deepseek-r1:free with llama fallback.</p>
+          </div>
+        </div>
+        <div class="settings-footer">
+          <button type="submit" class="btn btn--primary">Save settings</button>
+          <button type="button" class="btn btn--danger" id="clearData">Clear all data</button>
+        </div>
+      </form>
+      <p class="notice">Your API key is stored only on your device and sent directly to OpenRouter when categorizing or generating reports.</p>
+    </section>
+  </div>
+
+  <aside class="report-panel" id="reportPanel" aria-live="polite">
+    <div class="report-panel__header">
+      <h2>Weekly Watch Intelligence</h2>
+      <button class="btn btn--ghost" id="closeReport">Close</button>
+    </div>
+    <p class="muted" id="reportMeta"></p>
+    <div id="reportContent" class="report-panel__content"></div>
+    <div class="report-panel__actions">
+      <button class="btn btn--primary" id="regenerateReport">Regenerate</button>
+    </div>
+  </aside>
+</body>
+</html>

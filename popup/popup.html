@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YT True History</title>
+  <link rel="stylesheet" href="popup.css" />
+  <script type="module" src="popup.js" defer></script>
+</head>
+<body>
+  <div class="popup" id="popupRoot">
+    <header class="popup__header">
+      <div class="popup__title">
+        <div class="logo-dot" aria-hidden="true"></div>
+        <div>
+          <p class="eyebrow">Extension</p>
+          <h1>YT True History</h1>
+        </div>
+      </div>
+      <button class="dashboard-btn" id="openDashboard">Open Dashboard</button>
+    </header>
+
+    <section class="status">
+      <div class="status__item">
+        <p class="label">Tracking</p>
+        <button class="toggle" id="trackingToggle" aria-pressed="true">
+          <span class="toggle__dot"></span>
+          <span class="toggle__text">On</span>
+        </button>
+      </div>
+      <div class="status__item">
+        <p class="label">Videos saved today</p>
+        <p class="value" id="todayCount">0</p>
+      </div>
+      <div class="status__item">
+        <p class="label">AI Status</p>
+        <p class="value ai" id="aiStatus">Checking…</p>
+      </div>
+    </section>
+
+    <section class="recent">
+      <div class="recent__heading">
+        <h2>Last 5 intentional watches</h2>
+        <span id="recentCount" class="badge">0</span>
+      </div>
+      <ul class="recent__list" id="recentList" aria-live="polite"></ul>
+    </section>
+  </div>
+</body>
+</html>
