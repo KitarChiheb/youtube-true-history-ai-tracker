@@ -16,6 +16,18 @@ const MESSAGE_TYPES = {
   GENERATE_WEEKLY_REPORT: 'GENERATE_WEEKLY_REPORT'
 };
 
+const subscribeToStorage = () => {
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== 'local') return;
+    if (changes.videos) {
+      loadHistory();
+    }
+    if (changes.settings) {
+      loadSettings();
+    }
+  });
+};
+
 const state = {
   trackingEnabled: true,
   aiActive: false
@@ -25,6 +37,7 @@ const init = async () => {
   await loadSettings();
   await loadHistory();
   bindEvents();
+  subscribeToStorage();
 };
 
 const loadSettings = async () => {

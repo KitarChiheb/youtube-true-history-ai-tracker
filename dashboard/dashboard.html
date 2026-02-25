@@ -16,7 +16,10 @@
   <div class="dashboard" id="dashboardRoot">
     <header class="hero">
       <div class="hero__title">
-        <div class="hero__badge">Intentional-only</div>
+        <div class="hero__badges">
+          <div class="hero__badge">Intentional-only</div>
+          <div class="hero__badge hero__badge--beta">Beta</div>
+        </div>
         <h1>YT True History</h1>
         <p class="hero__subtitle">See only the videos you chose to watch — and understand the patterns behind them.</p>
       </div>
@@ -169,6 +172,7 @@
               <button type="button" class="btn btn--ghost" id="toggleKey">Show</button>
             </div>
             <small>Stored only on your device. Never logged.</small>
+            <small class="label-hint">Need a key? Create one at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> and paste it here.</small>
           </label>
           <div class="settings-actions">
             <button type="button" class="btn btn--outline" id="testApiKey">Test Connection</button>

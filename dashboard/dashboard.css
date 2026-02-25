@@ -40,6 +40,13 @@ body {
   align-items: flex-start;
 }
 
+.hero__badges {
+  display: inline-flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
 .hero__badge {
   display: inline-flex;
   padding: 6px 14px;
@@ -47,6 +54,12 @@ body {
   border: 1px solid var(--border);
   font-size: 12px;
   letter-spacing: 0.08em;
+}
+
+.hero__badge--beta {
+  border-color: rgba(255, 92, 102, 0.6);
+  background: linear-gradient(135deg, rgba(255, 92, 102, 0.2), rgba(122, 125, 255, 0.2));
+  color: var(--accent);
 }
 
 .hero__subtitle {
@@ -433,10 +446,19 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto;
 }
 
 .report-panel--open {
   transform: translateX(0);
+}
+
+.report-panel__content {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .report-panel__content p {

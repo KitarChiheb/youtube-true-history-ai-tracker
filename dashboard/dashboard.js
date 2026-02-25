@@ -99,6 +99,42 @@ const sanitizeSettings = (input = {}, base = FORM_DEFAULTS) => {
 
 const areSettingsEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
+const refreshHistoryFromStorage = async () => {
+  try {
+    const history = await getHistory();
+    state.history = history;
+    applyFilters();
+    renderAll();
+  } catch (error) {
+    console.error('dashboard.refreshHistoryFromStorage failed', error);
+  }
+};
+
+const refreshSettingsFromStorage = async () => {
+  try {
+    const storedSettings = await getSettings();
+    state.settings = sanitizeSettings(storedSettings, FORM_DEFAULTS);
+    populateSettingsForm();
+  } catch (error) {
+    console.error('dashboard.refreshSettingsFromStorage failed', error);
+  }
+};
+
+const subscribeToStorage = () => {
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== 'local') return;
+    if (changes.videos) {
+      refreshHistoryFromStorage();
+    }
+    if (changes.settings) {
+      refreshSettingsFromStorage();
+    }
+    if (changes.reportCache) {
+      loadReportCache();
+    }
+  });
+};
+
 const state = {
   history: [],
   filtered: [],
@@ -124,6 +160,7 @@ const init = async () => {
   bindEvents();
   renderAll();
   await loadReportCache();
+  subscribeToStorage();
 };
 
 const loadInitialData = async () => {

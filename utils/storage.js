@@ -16,7 +16,7 @@ const DEFAULT_SETTINGS = {
   minWatchPercent: 40,
   minWatchTimeSeconds: 300,
   trackAutoplay: true,
-  countHiddenTime: false,
+  countHiddenTime: true,
   dataRetention: 'all',
   openRouterApiKey: '',
   aiFeaturesEnabled: true,
