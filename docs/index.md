@@ -24,4 +24,4 @@ We do **not** sell, rent, or transfer your data to anyone. The only time data le
 - Export/import history for personal backups.
 
 ## Contact
-Questions? Email `tech.series.chkt@gmail.com`.
+Questions? Email `kitarchiheb11@gmail.com`.
